@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recipe Grocery List</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h1 {
+            text-align: center;
+        }
+        .recipe-container, .grocery-list {
+            margin-top: 20px;
+        }
+        .recipe {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+        }
+        .recipe img {
+            max-width: 100px;
+            vertical-align: middle;
+            margin-right: 10px;
+        }
+        .recipe input {
+            margin-left: 10px;
+        }
+        .grocery-list ul {
+            list-style: none;
+            padding: 0;
+        }
+        .grocery-list li {
+            margin: 5px 0;
+        }
+    </style>
+    <script src ='api-key.js'></script>
+</head>
+<body>
+<h1>Grocery List Builder</h1>
+<input type="text" id="search" placeholder="Search recipes (e.g., pasta)" />
+<button id="search-button">Search</button>
+</br>
+</br>
+<div class="recipe-container" id="recipes"></div>
+<div class="grocery-list">
+    <h2>Grocery List</h2>
+    <button id="save-grocery">Save Shopping List</button>
+    <button id="load-grocery">Load Saved Shopping List</button>
+    <ul id="grocery-list"></ul>
+</div>
+<script src ='groceryListBuilder.js'></script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
