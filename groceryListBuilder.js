@@ -7,35 +7,8 @@ const loadShoppingList = document.getElementById('load-grocery');
 
 const apiKey = API_KEY;
 
-/**class Recipe {
-    //constructor to initialize recipe object
-    constructor(id, title, image, ingredients = [], instructions =''){
-        this.id = id // Recipe ID
-        this.title = title;
-        this.image = image;
-        this.ingredients = ingredients;
-        this.instructions = instructions;
-    }
-
-    //Method to update ingredients and instructions
-    upDateDetails(ingredients, instructions){
-        this.ingredients = ingredients;
-        this.instructions = instructions;
-    }
-
-     toJSON() {
-        return JSON.stringify(this);
-    }
-
-    static fromJSON(jsonString){
-        const data = JSON.parse(jsonString);
-        return new Recipe(data.d, data.title, data.image, data.ingredients, data.instructions);
-    }
-} **/
-
 
 let selectedIngredients = [];
-const savedRecipes = {};
 
 
 saveShoppingList.addEventListener('click', () => {
@@ -96,12 +69,16 @@ function displayRecipes(recipes) {
             const ingredients = await fetchIngredients(recipeId);
             addIngredientsToGroceryList(ingredients);
 
-
-
         });
 
         recipeDiv.querySelector('#removeRecipe').addEventListener('click', async (e) => {
             e.target.parentElement.remove();
+        });
+
+        recipeDiv.querySelector('#removeAll').addEventListener('click', async (e) => {
+            const recipeId = e.target.getAttribute('data-id');
+            const ingredients = await fetchIngredients(recipeId);
+            removeRecipeFromGroceryList(ingredients);
         });
 
             recipesContainer.appendChild(recipeDiv);
@@ -134,67 +111,43 @@ async function fetchRecipes(query) {
  async function fetchIngredients(recipeId) {
     const url = `https://api.spoonacular.com/recipes/${recipeId}/ingredientWidget.json?apiKey=${apiKey}`;
 
+     //create abort controller
+     const controller = new AbortController();
+     const signal = controller.signal;
+
+     //set timeout to abort the request
+     const timeOut = setTimeout(()=> controller.abort(), 5000);
+
     try {
         console.log('fetching ingredients');
-        const response = await fetch(url);
+        const response = await fetch(url)
+            .finally(()=> clearTimeout(timeOut));
         const data = await response.json();
         return data.ingredients || [];
     } catch(error) {
-        throw(error);
+        throw(error.message);
     }
 }
-/*
-function displayRecipes(recipes) {
-    recipesContainer.innerHTML = '';
-    recipes.forEach(recipe => {
-        const recipeDiv = document.createElement('div');
-        recipeDiv.className = 'recipe';
-        recipeDiv.innerHTML = `
-          <img src="${recipe.image}" alt="${recipe.title}" />
-          <strong>${recipe.title}</strong>
-          <button data-id="${recipe.id}" id="add">Add Ingredients</button>
-          <button data-id="${recipe.id}" id="removeAll">Remove Recipe Ingredients</button>
-          <button data-id="${recipe.id}" id="removeRecipe">Remove Recipe</button>
-        `;
 
-        console.log(`displayRecipes: ${recipe.id}`);
-        recipeDiv.querySelector('#add').addEventListener('click', async (e) => {
-            const recipeId = e.target.getAttribute('data-id');
-            const ingredients = await fetchIngredients(recipeId);
-            addIngredientsToGroceryList(ingredients);
-        });
-        recipesContainer.appendChild(recipeDiv);
-
-        recipeDiv.querySelector('#removeAll').addEventListener('click', async (e) => {
-            const recipeId = e.target.getAttribute('data-id');
-            const ingredients = await fetchIngredients(recipeId);
-            removeRecipeFromGroceryList(ingredients);
-        })
-
-        recipeDiv.querySelector('#save').addEventListener('click', async (e) => {
-            const recipeId = e.target.getAttribute('data-id');
-            const recipe = await fetchRecipeById(recipeId);   //returns recipe object
-            saveRecipeToLocalStorage(recipe);
-
-        })
-
-        recipeDiv.querySelector('#removeRecipe').addEventListener('click', async (e) => {
-                e.target.parentElement.remove();
-            }
-        )
-
-    });
-}
-*/
 
 //given a recipeID return recipe object
 async function fetchRecipeById(recipeId){
+
+    //create abort controller
+    const controller = new AbortController();
+    const signal = controller.signal;
+
+    //set timeout to abort the request
+    const timeOut = setTimeout(()=> controller.abort(), 5000);
+
+
 
     console.log(`recipeId is: ${recipeId}`);
     const url = `https://api.spoonacular.com/recipes/${recipeId}/information?apiKey=${apiKey}`;
 
     try {
-        const response = await fetch(url);
+        const response = await fetch(url, {signal})
+            .finally(()=> clearTimeout(timeOut));
 
         if(!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
@@ -215,8 +168,8 @@ async function fetchRecipeById(recipeId){
         return recipe;
 
     } catch (error){
-        console.error(error.message);
-        throw error;
+
+        throw error.message;
     }
 
 }
@@ -235,37 +188,39 @@ function addIngredientsToGroceryList(ingredients) {
     });
 }
 
-function saveGroceryList(){
 
-    localStorage.setItem('grocery-list', JSON.stringify(selectedIngredients))
-    removeRecipeFromGroceryList(selectedIngredients);
-
-}
-
-function loadGroceryList(){
-    const storedList = localStorage.getItem('grocery-list');
-    const groceryList = JSON.parse(storedList);
-
-    addIngredientsToGroceryList(groceryList);
-    localStorage.clear();
-
-}
-
-function removeRecipeFromGroceryList(ingredients){
-
+async function removeRecipeFromGroceryList(ingredients) {
+    console.log(`test ${ingredients}`);
     ingredients.forEach(ingredient => {
-        if(selectedIngredients.some(item => item.name === ingredient.name )){
+        if (selectedIngredients.some(item => item.name === ingredient.name)) {
             console.log(`item is in list ${ingredient.name}`);
 
             selectedIngredients = selectedIngredients.filter(item => item.name !== ingredient.name);
 
             const li = document.getElementById(ingredient.name);
-            if(li){
+            if (li) {
                 li.remove();
             }
 
-        }else{
-           return undefined;
+        } else {
+            return undefined;
         }
     });
 }
+    function saveGroceryList() {
+
+        localStorage.setItem('grocery-list', JSON.stringify(selectedIngredients))
+        removeRecipeFromGroceryList(selectedIngredients);
+
+    }
+
+    function loadGroceryList() {
+        const storedList = localStorage.getItem('grocery-list');
+        const groceryList = JSON.parse(storedList);
+
+        addIngredientsToGroceryList(groceryList);
+        localStorage.clear();
+    }
+
+
+

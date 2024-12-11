@@ -51,3 +51,4 @@ describe('Spoonacular API test', () => {
         }
     });
 });
+
